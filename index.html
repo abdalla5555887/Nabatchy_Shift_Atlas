@@ -2,7 +2,7 @@
 <html dir="rtl" lang="ar">
 <head>
     <meta charset="UTF-8">
-    <title>Nabatchy_Shift_Atlas</title>
+    <title>نظام إدارة النبطشيات - Nabatchy Pro</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -13,51 +13,38 @@
         }
 
         .container {
-            width: 95%;
+            width: 98%;
             background: white;
-            padding: 10px;
+            padding: 15px;
             margin: 0 auto;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
 
-        /* تنسيق الجدول */
+        /* إعدادات الجدول المطلوبة */
         table {
             width: 100%;
             border-collapse: collapse;
-            table-layout: auto;
+            table-layout: auto; /* يسمح بتمدد الخلية تلقائياً حسب النص */
             margin-bottom: 5px;
         }
 
         th, td {
             border: 1px solid #000;
             text-align: center;
-            padding: 2px 4px;
+            padding: 4px 6px;
             font-size: 11px; 
             vertical-align: middle;
             color: #000;
-        }
-
-        .shift-cell {
-            white-space: nowrap;
-            overflow: visible;
-            cursor: pointer;
-            transition: background 0.2s;
+            white-space: nowrap; /* يمنع نزول النص لسطر جديد */
         }
 
         th {
             background-color: #eee;
             font-weight: bold;
-            padding: 5px;
-            white-space: nowrap;
         }
 
-        .col-date, .col-day { width: 1%; white-space: nowrap; }
-        
-        /* تظليل الخلية المختارة - لون أصفر فاتح واضح */
-        .selected-cell {
-            background-color: #fff9c4 !important; /* أصفر فاتح للتمييز */
-            outline: 2px solid #fbc02d;
-            font-weight: bold;
-        }
+        .shift-cell { cursor: pointer; transition: 0.2s; min-height: 25px; }
+        .selected-cell { background-color: #fff9c4 !important; outline: 2px solid #fbc02d; font-weight: bold; }
 
         h1 {
             text-align: center;
@@ -68,47 +55,49 @@
         }
 
         /* التوقيعات والأكواد */
-        .signatures-wrapper { display: flex; justify-content: space-between; margin-top: 20px; padding: 0 20px; font-size: 12px; font-weight: bold; }
-        .sig-block { text-align: center; min-width: 150px; }
-        .sig-block input { border: none; text-align: center; font-family: inherit; font-weight: bold; font-size: 12px; width: 100%; background: transparent; margin-top: 5px; }
-        .codes-list { text-align: right; margin-top: 10px; margin-right: 5px; font-size: 11px; font-weight: bold; }
-        .code-row input { border: none; background: transparent; font-weight: bold; font-family: inherit; font-size: 11px; text-align: right; width: 300px; }
+        .codes-list { margin-top: 15px; font-size: 11px; font-weight: bold; }
+        .code-row input { border: none; background: transparent; font-weight: bold; width: 100%; font-family: inherit; }
+        
+        .signatures-wrapper { display: flex; justify-content: space-between; margin-top: 20px; padding: 0 20px; font-weight: bold; }
+        .sig-block { text-align: center; width: 250px; }
+        .sig-block input { border: none; text-align: center; font-weight: bold; width: 100%; font-size: 12px; background: transparent; margin-top: 5px; }
 
-        /* لوحة التحكم */
+        /* لوحات التحكم (تختفي في الطباعة) */
         .controls-panel {
             margin-top: 20px;
             padding: 15px;
             background: #e9ecef;
             border: 1px solid #ced4da;
-            position: sticky;
-            bottom: 0;
-            z-index: 100;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
         }
         
-        .quick-select-box {
-            background: #fff;
-            padding: 10px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        .worker-btn { padding: 4px 8px; margin: 2px; cursor: pointer; font-size: 12px; border: 1px solid #999; border-radius: 3px; background: #fff;}
+        .worker-btn.active { background: #333; color: #fff; }
+
+        .history-tag {
+            display: inline-block;
+            background: #e3f2fd;
+            color: #007bff;
+            padding: 5px 12px;
+            margin: 5px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 11px;
+            border: 1px solid #007bff;
         }
 
-        .worker-btn { padding: 4px 8px; margin: 2px; cursor: pointer; font-size: 12px; border: 1px solid #999; border-radius: 3px; background: #fff;}
-        .worker-btn.active { background: #333; color: #fff; border-color: #000; }
-        .worker-btn:hover { background: #ddd; }
-
+        /* إعدادات الطباعة لضمان صفحة واحدة عرضية */
         @media print {
+            .controls-panel, .setup-bar, .history-section, .no-print { display: none !important; }
             @page { size: A4 landscape; margin: 5mm; }
-            body { padding: 0; margin: 0; background: white; zoom: 85%; -webkit-print-color-adjust: exact; }
-            .container { padding: 0; width: 100%; max-width: none; }
-            .controls-panel, .setup-bar { display: none !important; }
-            th, td { border: 1px solid #000 !important; font-size: 9pt !important; padding: 2px !important; }
-            th { background-color: #eee !important; }
-            .selected-cell { background-color: transparent !important; outline: none; }
+            body { padding: 0; margin: 0; background: white; }
+            .container { box-shadow: none; width: 100%; padding: 0; }
+            
+            /* ضغط المقياس لضمان احتواء كافة البيانات في صفحة واحدة */
+            html { zoom: 82%; } 
+            
+            table { width: 100% !important; border: 1px solid #000 !important; }
+            th, td { border: 1px solid #000 !important; }
         }
     </style>
 </head>
@@ -126,15 +115,17 @@
             <option value="10">أكتوبر</option><option value="11">نوفمبر</option><option value="12">ديسمبر</option>
         </select>
         <label> السنة: </label>
-        <input type="number" id="yearSelect" value="2026" style="width:60px;" onchange="generateTable()">
-        <button onclick="window.print()" style="background:#007bff; color:white; border:none; padding:5px 15px; cursor:pointer; margin-right:10px; font-weight:bold;">طباعة الجدول</button>
+        <input type="number" id="yearSelect" value="2026" style="width:65px;" onchange="generateTable()">
+        
+        <button onclick="saveToHistory()" style="background:#28a745; color:white; border:none; padding:5px 15px; cursor:pointer; margin-right:10px; font-weight:bold;">💾 حفظ نسخة</button>
+        <button onclick="window.print()" style="background:#007bff; color:white; border:none; padding:5px 15px; cursor:pointer; margin-right:10px; font-weight:bold;">🖨️ طباعة الجدول</button>
     </div>
 
     <table id="mainTable">
         <thead>
             <tr>
-                <th class="col-date">التاريخ</th>
-                <th class="col-day">اليوم</th>
+                <th width="35">التاريخ</th>
+                <th width="80">اليوم</th>
                 <th>8 صباحاً - 2 ظهراً</th>
                 <th>2 ظهراً - 8 مساءً</th>
                 <th>8 مساءً - 8 صباحاً</th>
@@ -144,86 +135,58 @@
     </table>
 
     <div class="codes-list">
-        <div class="code-row"><input type="text" value="الاء عبدالنبي  1111"></div>
-        <div class="code-row"><input type="text" value="عبدالله احمد  1111"></div>
-        <div class="code-row"><input type="text" value="حسام حسن  1111"></div>
-        <div class="code-row"><input type="text" value="حسام حسن  1111"></div>
-        <div class="code-row"><input type="text" value="حسام حسن 1111"></div>
+        <div class="code-row"><input type="text" value="الاء عبدالنبي  1111 - عبدالله احمد  2222 - حسام حسن  3333"></div>
     </div>
 
     <div class="signatures-wrapper">
         <div class="sig-block"><div>مسؤول بنك الدم</div><input type="text" value="د/ مها فتوح والي"></div>
-        <div class="sig-block"><div>مدير المستشفى</div><input type="text" value="د/ محمد صلاح قاسم"></div>
+        <div class="sig-block"><div> مدير المستشفى</div><input type="text" value="د/ محمد صلاح قاسم"></div>
     </div>
 
     <div class="controls-panel">
-        <div class="quick-select-box">
-            <strong style="color:#007bff; font-size:14px;">🔎 تحديد النبطشية:</strong>
-            
-            <div style="display:flex; align-items:center;">
-                <label>اليوم:</label>
-                <input type="number" id="quickDay" min="1" max="31" style="width:50px; text-align:center; margin:0 5px; font-weight:bold;" placeholder="1">
-            </div>
-            
-            <div style="display:flex; align-items:center;">
-                <label>الفترة:</label>
-                <select id="quickShift" style="padding: 2px; margin:0 5px;">
-                    <option value="2">8 صباحاً - 2 ظهراً</option>
-                    <option value="3">2 ظهراً - 8 مساءً</option>
-                    <option value="4">8 مساءً - 8 صباحاً</option>
-                </select>
-            </div>
-
-            <button type="button" onclick="manualSelect()" style="cursor:pointer; background: #007bff; color: white; border: none; padding: 5px 15px; border-radius:3px; font-weight:bold;">تحديد وتظليل</button>
+        <div style="display:flex; gap:15px; align-items:center; margin-bottom:10px; background:#fff; padding:8px; border-radius:5px; border:1px solid #ccc;">
+            <strong style="color:#007bff;">🔎 تحديد سريع:</strong>
+            <label>يوم:</label> <input type="number" id="quickDay" min="1" max="31" style="width:45px; text-align:center;">
+            <label>فترة:</label>
+            <select id="quickShift">
+                <option value="2">الصباحية</option><option value="3">المسائية</option><option value="4">الليلية</option>
+            </select>
+            <button onclick="manualSelect()" style="background:#007bff; color:white; border:none; padding:4px 12px; cursor:pointer; border-radius:3px;">تحديد وتظليل</button>
         </div>
 
-        <div style="margin-bottom:5px; font-weight:bold;">اختر الأسماء:</div>
         <div id="palette" style="margin-bottom:10px;"></div>
         
         <div style="border-top:1px solid #ccc; padding-top:10px;">
-            <input type="text" id="manualInput" placeholder="اسم إضافي يدوي..." style="padding:5px; width: 200px;">
-            <button onclick="applyToCell()" style="cursor:pointer; background: green; color: white; border: none; padding: 5px 10px;">حفظ في الخلية</button>
-            <button onclick="clearCell()" style="cursor:pointer; background: red; color: white; border: none; padding: 5px 10px;">مسح الخلية</button>
+            <input type="text" id="manualInput" placeholder="اسم إضافي يدوي..." style="padding:6px; width: 250px;">
+            <button onclick="applyToCell()" style="background: green; color: white; border: none; padding: 6px 20px; font-weight: bold; cursor:pointer;">حفظ في الخلية</button>
+            <button onclick="clearCell()" style="background: red; color: white; border: none; padding: 6px 15px; cursor:pointer;">مسح</button>
+        </div>
+
+        <div class="history-section" style="margin-top:15px; border-top:1px dashed #999; padding-top:10px;">
+            <strong>📚 النسخ المحفوظة:</strong> <div id="historyList"></div>
         </div>
     </div>
 </div>
 
 <script>
     const workers = ["خالد قاسم", "نرمين طارق", "جيهان نصر", "بسمة محمد", "الاء عبد النبي", "الاء قاسم", "مها والي", "عبد الله احمد", "اسماعيل العماوي", "احمد محمود", "حسام حسن", "وفاء النمر", "احمد الحسيني"];
-    let selectedNames = [];
-    let activeCell = null;
+    let selectedNames = [], activeCell = null;
 
     function init() {
-        // إنشاء أزرار الأسماء
         const p = document.getElementById('palette');
-        p.innerHTML = '';
         workers.forEach(name => {
             const btn = document.createElement('button');
             btn.className = 'worker-btn';
             btn.textContent = name;
             btn.onclick = () => {
-                if (selectedNames.includes(name)) { 
-                    selectedNames = selectedNames.filter(n => n !== name); 
-                    btn.classList.remove('active'); 
-                } else { 
-                    selectedNames.push(name); 
-                    btn.classList.add('active'); 
-                }
+                if (selectedNames.includes(name)) { selectedNames = selectedNames.filter(n => n !== name); btn.classList.remove('active'); }
+                else { selectedNames.push(name); btn.classList.add('active'); }
             };
             p.appendChild(btn);
         });
-        
-        // ضبط التاريخ الحالي
-        const today = new Date();
-        document.getElementById('monthSelect').value = today.getMonth() + 1;
-        document.getElementById('yearSelect').value = today.getFullYear();
-        
+        document.getElementById('monthSelect').value = new Date().getMonth() + 1;
         generateTable();
-        
-        // تفعيل الضغط على Enter في حقل اليوم
-        document.getElementById('quickDay').addEventListener("keypress", function(event) {
-            if (event.key === "Enter") { manualSelect(); }
-        });
+        refreshHistoryUI();
     }
 
     function generateTable() {
@@ -231,103 +194,72 @@
         const year = parseInt(document.getElementById('yearSelect').value);
         const tbody = document.getElementById('tableBody');
         const monthText = document.getElementById('monthSelect').options[month-1].text;
-        
         document.getElementById('tableTitle').textContent = `جدول الكيميائيين والفنيين ببنك الدم عن شهر ${monthText} ${year}`;
         tbody.innerHTML = '';
-        
         const daysInMonth = new Date(year, month, 0).getDate();
         const arabicDays = ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
-
         for (let d = 1; d <= daysInMonth; d++) {
             const dateObj = new Date(year, month - 1, d);
             const row = document.createElement('tr');
             if (dateObj.getDay() === 5) row.style.backgroundColor = "#f2f2f2"; 
-            
-            row.innerHTML = `
-                <td>${d}</td>
-                <td style="font-weight:bold;">${arabicDays[dateObj.getDay()]}</td>
-                <td class="shift-cell" onclick="selectCell(this)"></td>
-                <td class="shift-cell" onclick="selectCell(this)"></td>
-                <td class="shift-cell" onclick="selectCell(this)"></td>
-            `;
+            row.innerHTML = `<td>${d}</td><td style="font-weight:bold;">${arabicDays[dateObj.getDay()]}</td><td class="shift-cell" onclick="selectCell(this)"></td><td class="shift-cell" onclick="selectCell(this)"></td><td class="shift-cell" onclick="selectCell(this)"></td>`;
             tbody.appendChild(row);
         }
-        
-        document.getElementById('quickDay').max = daysInMonth;
     }
 
     function selectCell(cell) { 
-        // إزالة التظليل القديم
         if (activeCell) activeCell.classList.remove('selected-cell'); 
-        
         activeCell = cell; 
         cell.classList.add('selected-cell'); 
-        
-        // تحديث أرقام لوحة التحكم لتعكس ما تم اختياره
-        if(cell.parentElement) {
-            const dayNum = cell.parentElement.cells[0].textContent;
-            const shiftIdx = cell.cellIndex;
-            document.getElementById('quickDay').value = dayNum;
-            document.getElementById('quickShift').value = shiftIdx;
-        }
     }
 
-    // دالة التحديد اليدوي (المصححة)
     function manualSelect() {
-        const dayVal = document.getElementById('quickDay').value;
-        const shiftCol = parseInt(document.getElementById('quickShift').value);
-        
-        if (!dayVal) { alert("الرجاء كتابة رقم اليوم"); return; }
-        
-        const dayNum = parseInt(dayVal);
+        const day = parseInt(document.getElementById('quickDay').value);
+        const shift = parseInt(document.getElementById('quickShift').value);
         const tbody = document.getElementById('tableBody');
-        
-        // التأكد من أن اليوم موجود في الجدول
-        if (dayNum < 1 || dayNum > tbody.rows.length) {
-            alert("رقم اليوم غير صحيح لهذا الشهر");
-            return;
-        }
-
-        // الوصول للصف والخلية
-        // المصفوفة تبدأ من 0، لذا اليوم 1 هو الصف 0
-        const targetRow = tbody.rows[dayNum - 1]; 
-        
-        if (targetRow) {
-            const targetCell = targetRow.cells[shiftCol];
-            if (targetCell) {
-                // محاكاة النقر على الخلية لتفعيل كل شيء
-                targetCell.click();
-                // التمرير للشاشة لتظهر الخلية
-                targetCell.scrollIntoView({behavior: "smooth", block: "center"});
-            }
+        if (day >= 1 && day <= tbody.rows.length) {
+            selectCell(tbody.rows[day-1].cells[shift]);
+            tbody.rows[day-1].cells[shift].scrollIntoView({behavior: "smooth", block: "center"});
         }
     }
 
     function applyToCell() {
-        if (!activeCell) return alert("⚠️ اختر خلية أولاً! \nاضغط على 'تحديد وتظليل' أو انقر على الجدول.");
-        
-        const manual = document.getElementById('manualInput').value.trim();
-        let final = [...selectedNames];
-        if (manual) final.push(manual);
-        
-        activeCell.textContent = final.join(' - ');
-        
-        // تنظيف
+        if (!activeCell) return alert("اختر خلية أولاً");
+        let names = [...selectedNames, document.getElementById('manualInput').value.trim()].filter(x => x);
+        activeCell.textContent = names.join(' - ');
         selectedNames = [];
         document.querySelectorAll('.worker-btn').forEach(b => b.classList.remove('active'));
         document.getElementById('manualInput').value = '';
-        activeCell.classList.remove('selected-cell');
-        activeCell = null;
+        activeCell.classList.remove('selected-cell'); activeCell = null;
     }
 
-    function clearCell() { 
-        if (activeCell) {
-            activeCell.textContent = ''; 
-            activeCell.classList.remove('selected-cell');
-            activeCell = null;
-        } else {
-            alert("اختر خلية لمسحها");
-        }
+    function clearCell() { if (activeCell) activeCell.textContent = ''; }
+
+    function saveToHistory() {
+        const rows = document.getElementById('tableBody').rows;
+        let data = [];
+        for (let r of rows) data.push([r.cells[2].textContent, r.cells[3].textContent, r.cells[4].textContent]);
+        let history = JSON.parse(localStorage.getItem('nabatchy_atlas_v3') || '[]');
+        history.unshift({ time: new Date().toLocaleString('ar-EG'), data, month: document.getElementById('monthSelect').value });
+        if (history.length > 5) history.pop();
+        localStorage.setItem('nabatchy_atlas_v3', JSON.stringify(history));
+        refreshHistoryUI();
+        alert("تم حفظ المرجع");
+    }
+
+    function refreshHistoryUI() {
+        const list = document.getElementById('historyList');
+        const history = JSON.parse(localStorage.getItem('nabatchy_atlas_v3') || '[]');
+        list.innerHTML = history.length ? '' : 'لا يوجد نسخ';
+        history.forEach((item, idx) => {
+            const span = document.createElement('span'); span.className = 'history-tag';
+            span.textContent = item.time;
+            span.onclick = () => {
+                const tbody = document.getElementById('tableBody');
+                item.data.forEach((r, i) => { if(tbody.rows[i]) { tbody.rows[i].cells[2].textContent = r[0]; tbody.rows[i].cells[3].textContent = r[1]; tbody.rows[i].cells[4].textContent = r[2]; } });
+            };
+            list.appendChild(span);
+        });
     }
 
     window.onload = init;
