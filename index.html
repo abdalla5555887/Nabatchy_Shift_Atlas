@@ -20,11 +20,10 @@
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
 
-        /* إعدادات الجدول المطلوبة */
         table {
             width: 100%;
             border-collapse: collapse;
-            table-layout: auto; /* يسمح بتمدد الخلية تلقائياً حسب النص */
+            table-layout: auto;
             margin-bottom: 5px;
         }
 
@@ -35,26 +34,16 @@
             font-size: 11px; 
             vertical-align: middle;
             color: #000;
-            white-space: nowrap; /* يمنع نزول النص لسطر جديد */
         }
 
-        th {
-            background-color: #eee;
-            font-weight: bold;
-        }
+        th { background-color: #eee; font-weight: bold; }
 
-        .shift-cell { cursor: pointer; transition: 0.2s; min-height: 25px; }
+        .shift-cell { cursor: pointer; transition: 0.2s; min-height: 25px; min-width: 120px; }
+        .shift-cell:hover { background-color: #f0f7ff; }
         .selected-cell { background-color: #fff9c4 !important; outline: 2px solid #fbc02d; font-weight: bold; }
 
-        h1 {
-            text-align: center;
-            font-size: 18px;
-            margin: 0 0 15px 0;
-            text-decoration: underline;
-            font-weight: bold;
-        }
+        h1 { text-align: center; font-size: 18px; margin: 0 0 15px 0; text-decoration: underline; font-weight: bold; }
 
-        /* التوقيعات والأكواد */
         .codes-list { margin-top: 15px; font-size: 11px; font-weight: bold; }
         .code-row input { border: none; background: transparent; font-weight: bold; width: 100%; font-family: inherit; }
         
@@ -62,7 +51,6 @@
         .sig-block { text-align: center; width: 250px; }
         .sig-block input { border: none; text-align: center; font-weight: bold; width: 100%; font-size: 12px; background: transparent; margin-top: 5px; }
 
-        /* لوحات التحكم (تختفي في الطباعة) */
         .controls-panel {
             margin-top: 20px;
             padding: 15px;
@@ -71,31 +59,37 @@
             border-radius: 8px;
         }
         
-        .worker-btn { padding: 4px 8px; margin: 2px; cursor: pointer; font-size: 12px; border: 1px solid #999; border-radius: 3px; background: #fff;}
-        .worker-btn.active { background: #333; color: #fff; }
+        .worker-btn { padding: 6px 12px; margin: 2px; cursor: pointer; font-size: 12px; border: 1px solid #999; border-radius: 3px; background: #fff;}
+        .worker-btn.active { background: #007bff; color: #fff; border-color: #0056b3; box-shadow: 0 0 5px rgba(0,123,255,0.5); }
 
         .history-tag {
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
             background: #e3f2fd;
             color: #007bff;
-            padding: 5px 12px;
+            padding: 4px 10px;
             margin: 5px;
             border-radius: 15px;
-            cursor: pointer;
             font-size: 11px;
             border: 1px solid #007bff;
+            gap: 8px;
         }
+        
+        .history-name { cursor: pointer; font-weight: bold; }
+        .history-actions { display: flex; gap: 4px; opacity: 0.7; }
+        .history-actions span { cursor: pointer; padding: 0 3px; }
+        .history-actions span:hover { opacity: 1; font-weight: bold; color: #0056b3; }
 
-        /* إعدادات الطباعة لضمان صفحة واحدة عرضية */
+        .bulk-options { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; background: #fff; padding: 10px; border-radius: 5px; border: 1px solid #ccc; margin-bottom: 10px; }
+        .day-chip { background: #f8f9fa; border: 1px solid #ddd; padding: 3px 8px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+        .day-chip input { margin-left: 5px; cursor: pointer; }
+
         @media print {
             .controls-panel, .setup-bar, .history-section, .no-print { display: none !important; }
             @page { size: A4 landscape; margin: 5mm; }
             body { padding: 0; margin: 0; background: white; }
             .container { box-shadow: none; width: 100%; padding: 0; }
-            
-            /* ضغط المقياس لضمان احتواء كافة البيانات في صفحة واحدة */
             html { zoom: 82%; } 
-            
             table { width: 100% !important; border: 1px solid #000 !important; }
             th, td { border: 1px solid #000 !important; }
         }
@@ -144,22 +138,49 @@
     </div>
 
     <div class="controls-panel">
-        <div style="display:flex; gap:15px; align-items:center; margin-bottom:10px; background:#fff; padding:8px; border-radius:5px; border:1px solid #ccc;">
-            <strong style="color:#007bff;">🔎 تحديد سريع:</strong>
-            <label>يوم:</label> <input type="number" id="quickDay" min="1" max="31" style="width:45px; text-align:center;">
-            <label>فترة:</label>
-            <select id="quickShift">
-                <option value="2">الصباحية</option><option value="3">المسائية</option><option value="4">الليلية</option>
-            </select>
-            <button onclick="manualSelect()" style="background:#007bff; color:white; border:none; padding:4px 12px; cursor:pointer; border-radius:3px;">تحديد وتظليل</button>
+        <div id="activeWorkerDisplay" style="margin-bottom: 10px; font-weight: bold; color: #d32f2f;">
+            الأسماء المختارة حالياً: <span id="currentWorkerName">لا يوجد</span>
+            <button onclick="clearSelection()" style="margin-right:15px; font-size:11px; padding:3px 8px; cursor:pointer; background:#fff; border:1px solid #ccc; border-radius:3px;">إلغاء تحديد الكل</button>
         </div>
 
-        <div id="palette" style="margin-bottom:10px;"></div>
+        <div class="bulk-options">
+            <strong style="color:#007bff; width: 100%; border-bottom: 1px solid #eee; margin-bottom: 5px;">⚡ إضافة سريعة للمجموعة (بناءً على اسم اليوم):</strong>
+            <span>اختر الأيام:</span>
+            <label class="day-chip"><input type="checkbox" class="day-select" value="السبت"> السبت</label>
+            <label class="day-chip"><input type="checkbox" class="day-select" value="الأحد"> الأحد</label>
+            <label class="day-chip"><input type="checkbox" class="day-select" value="الإثنين"> الإثنين</label>
+            <label class="day-chip"><input type="checkbox" class="day-select" value="الثلاثاء"> الثلاثاء</label>
+            <label class="day-chip"><input type="checkbox" class="day-select" value="الأربعاء"> الأربعاء</label>
+            <label class="day-chip"><input type="checkbox" class="day-select" value="الخميس"> الخميس</label>
+            <label class="day-chip"><input type="checkbox" class="day-select" value="الجمعة"> الجمعة</label>
+
+            <div style="width: 10px; height: 20px; border-left: 2px solid #ddd; margin: 0 5px;"></div>
+            <span>الفترة:</span>
+            <label><input type="checkbox" class="shift-check" value="2"> صباحاً</label>
+            <label><input type="checkbox" class="shift-check" value="3"> مساءً</label>
+            <label><input type="checkbox" class="shift-check" value="4"> ليلاً</label>
+            <button onclick="applyBulk()" style="background:#007bff; color:white; border:none; padding:8px 20px; cursor:pointer; border-radius:4px; font-weight:bold; margin-right: auto;">تطبيق الإضافة</button>
+        </div>
+
+        <div id="palette" style="margin-bottom:10px; padding: 10px; background: #fff; border-radius: 5px; border: 1px solid #ccc;"></div>
         
+        <div style="background: #fff; padding: 10px; border-radius: 5px; border: 1px solid #ccc; margin-bottom: 10px; display: flex; flex-wrap: wrap; gap: 15px; align-items: center;">
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <strong style="color: #28a745;">➕ إضافة للقائمة:</strong>
+                <input type="text" id="newWorkerInput" placeholder="اكتب الاسم هنا..." style="padding: 6px; width: 180px; border: 1px solid #ccc; border-radius: 4px;">
+                <button onclick="addNewWorkerToList()" style="background: #28a745; color: white; border: none; padding: 6px 15px; border-radius: 4px; cursor: pointer; font-weight: bold;">حفظ الاسم</button>
+            </div>
+            <div style="width: 2px; height: 30px; background: #eee;"></div>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <strong style="color: #dc3545;">🗑️ إدارة الحذف:</strong>
+                <button id="deleteWorkerBtn" onclick="deleteSelectedWorkers()" disabled style="background: #dc3545; color: white; border: none; padding: 6px 15px; border-radius: 4px; cursor: not-allowed; font-weight: bold; opacity: 0.5;">حذف الأسماء المختارة نهائياً</button>
+            </div>
+        </div>
+
         <div style="border-top:1px solid #ccc; padding-top:10px;">
-            <input type="text" id="manualInput" placeholder="اسم إضافي يدوي..." style="padding:6px; width: 250px;">
-            <button onclick="applyToCell()" style="background: green; color: white; border: none; padding: 6px 20px; font-weight: bold; cursor:pointer;">حفظ في الخلية</button>
-            <button onclick="clearCell()" style="background: red; color: white; border: none; padding: 6px 15px; cursor:pointer;">مسح</button>
+            <input type="text" id="manualInput" placeholder="اسم إضافي يدوي للخلية المحددة..." style="padding:6px; width: 250px;">
+            <button onclick="applyManual()" style="background: green; color: white; border: none; padding: 6px 20px; font-weight: bold; cursor:pointer;">إضافة اليدوي</button>
+            <button onclick="clearSelectedCell()" style="background: red; color: white; border: none; padding: 6px 15px; cursor:pointer;">مسح الخلية</button>
         </div>
 
         <div class="history-section" style="margin-top:15px; border-top:1px dashed #999; padding-top:10px;">
@@ -169,24 +190,77 @@
 </div>
 
 <script>
-    const workers = ["خالد قاسم", "نرمين طارق", "جيهان نصر", "بسمة محمد", "الاء عبد النبي", "الاء قاسم", "مها والي", "عبد الله احمد", "اسماعيل العماوي", "احمد محمود", "حسام حسن", "وفاء النمر", "احمد الحسيني"];
-    let selectedNames = [], activeCell = null;
+    let workers = JSON.parse(localStorage.getItem('nabatchy_worker_list')) || ["خالد قاسم", "نرمين طارق", "جيهان نصر", "بسمة محمد", "الاء عبد النبي", "الاء قاسم", "مها والي", "عبد الله احمد", "اسماعيل العماوي", "احمد محمود", "حسام حسن", "وفاء النمر", "احمد الحسيني"];
+    let selectedWorkers = []; 
+    let activeCell = null;
 
     function init() {
-        const p = document.getElementById('palette');
-        workers.forEach(name => {
-            const btn = document.createElement('button');
-            btn.className = 'worker-btn';
-            btn.textContent = name;
-            btn.onclick = () => {
-                if (selectedNames.includes(name)) { selectedNames = selectedNames.filter(n => n !== name); btn.classList.remove('active'); }
-                else { selectedNames.push(name); btn.classList.add('active'); }
-            };
-            p.appendChild(btn);
-        });
+        refreshPalette();
         document.getElementById('monthSelect').value = new Date().getMonth() + 1;
         generateTable();
         refreshHistoryUI();
+    }
+
+    function refreshPalette() {
+        const p = document.getElementById('palette');
+        p.innerHTML = '';
+        workers.forEach(name => {
+            const btn = document.createElement('button');
+            btn.className = 'worker-btn';
+            if (selectedWorkers.includes(name)) btn.classList.add('active');
+            btn.textContent = name;
+            btn.onclick = () => toggleWorkerSelection(name, btn);
+            p.appendChild(btn);
+        });
+        localStorage.setItem('nabatchy_worker_list', JSON.stringify(workers));
+        updateUISelection();
+    }
+
+    function toggleWorkerSelection(name, btn) {
+        if (selectedWorkers.includes(name)) {
+            selectedWorkers = selectedWorkers.filter(w => w !== name);
+            btn.classList.remove('active');
+        } else {
+            selectedWorkers.push(name);
+            btn.classList.add('active');
+        }
+        updateUISelection();
+    }
+
+    function updateUISelection() {
+        const display = document.getElementById('currentWorkerName');
+        display.textContent = selectedWorkers.length > 0 ? selectedWorkers.join(' - ') : "لا يوجد";
+        
+        const delBtn = document.getElementById('deleteWorkerBtn');
+        if (selectedWorkers.length > 0) {
+            delBtn.disabled = false; delBtn.style.cursor = 'pointer'; delBtn.style.opacity = '1';
+        } else {
+            delBtn.disabled = true; delBtn.style.cursor = 'not-allowed'; delBtn.style.opacity = '0.5';
+        }
+    }
+
+    function clearSelection() {
+        selectedWorkers = [];
+        refreshPalette();
+    }
+
+    function addNewWorkerToList() {
+        const input = document.getElementById('newWorkerInput');
+        const name = input.value.trim();
+        if (name && !workers.includes(name)) {
+            workers.push(name);
+            input.value = '';
+            refreshPalette();
+        }
+    }
+
+    function deleteSelectedWorkers() {
+        if (selectedWorkers.length === 0) return;
+        if (confirm(`هل أنت متأكد من حذف الأسماء المختارة من القائمة؟`)) {
+            workers = workers.filter(w => !selectedWorkers.includes(w));
+            selectedWorkers = [];
+            refreshPalette();
+        }
     }
 
     function generateTable() {
@@ -202,64 +276,177 @@
             const dateObj = new Date(year, month - 1, d);
             const row = document.createElement('tr');
             if (dateObj.getDay() === 5) row.style.backgroundColor = "#f2f2f2"; 
-            row.innerHTML = `<td>${d}</td><td style="font-weight:bold;">${arabicDays[dateObj.getDay()]}</td><td class="shift-cell" onclick="selectCell(this)"></td><td class="shift-cell" onclick="selectCell(this)"></td><td class="shift-cell" onclick="selectCell(this)"></td>`;
+            row.innerHTML = `<td>${d}</td><td style="font-weight:bold;">${arabicDays[dateObj.getDay()]}</td>
+                <td class="shift-cell" onclick="handleCellClick(this)"></td>
+                <td class="shift-cell" onclick="handleCellClick(this)"></td>
+                <td class="shift-cell" onclick="handleCellClick(this)"></td>`;
             tbody.appendChild(row);
         }
     }
 
-    function selectCell(cell) { 
-        if (activeCell) activeCell.classList.remove('selected-cell'); 
-        activeCell = cell; 
-        cell.classList.add('selected-cell'); 
+    function handleCellClick(cell) {
+        // إذا كان هناك أسماء مختارة في الأسفل، قم بإضافتها
+        if (selectedWorkers.length > 0) {
+            selectedWorkers.forEach(name => addNameToCell(cell, name));
+            activeCell = cell;
+            cell.classList.add('selected-cell');
+            return;
+        }
+
+        // إذا لم يكن هناك أسماء مختارة، ابدأ عملية الحذف أو التعديل
+        const content = cell.textContent.trim();
+        if (content === "") return;
+
+        const names = content.split(' - ').filter(n => n.trim() !== "");
+
+        if (names.length === 1) {
+            if (confirm(`هل تريد حذف "${names[0]}"؟`)) {
+                cell.textContent = "";
+            }
+        } else {
+            // إنشاء القائمة المرقمة كما في الصورة
+            let msg = "الأسماء في الخلية:\n";
+            names.forEach((n, i) => {
+                msg += `${i + 1}: ${n}\n`;
+            });
+            msg += "\nاكتب رقم الاسم الذي تريد حذفه:";
+
+            let input = prompt(msg);
+            if (input !== null) {
+                let index = parseInt(input) - 1;
+                // التأكد من أن الرقم المدخل صحيح وموجود في القائمة
+                if (!isNaN(index) && index >= 0 && index < names.length) {
+                    names.splice(index, 1);
+                    cell.textContent = names.join(' - ');
+                }
+            }
+        }
+
+        if (activeCell) activeCell.classList.remove('selected-cell');
+        activeCell = cell;
+        cell.classList.add('selected-cell');
     }
 
-    function manualSelect() {
-        const day = parseInt(document.getElementById('quickDay').value);
-        const shift = parseInt(document.getElementById('quickShift').value);
-        const tbody = document.getElementById('tableBody');
-        if (day >= 1 && day <= tbody.rows.length) {
-            selectCell(tbody.rows[day-1].cells[shift]);
-            tbody.rows[day-1].cells[shift].scrollIntoView({behavior: "smooth", block: "center"});
+    function addNameToCell(cell, name) {
+        let existing = cell.textContent.split(' - ').map(x => x.trim()).filter(x => x !== "");
+        if (!existing.includes(name)) {
+            existing.push(name);
+            cell.textContent = existing.join(' - ');
         }
     }
 
-    function applyToCell() {
-        if (!activeCell) return alert("اختر خلية أولاً");
-        let names = [...selectedNames, document.getElementById('manualInput').value.trim()].filter(x => x);
-        activeCell.textContent = names.join(' - ');
-        selectedNames = [];
-        document.querySelectorAll('.worker-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById('manualInput').value = '';
-        activeCell.classList.remove('selected-cell'); activeCell = null;
+    function applyBulk() {
+        if (selectedWorkers.length === 0) return alert("اختر اسماً أولاً");
+        const selectedDays = Array.from(document.querySelectorAll('.day-select:checked')).map(cb => cb.value);
+        const selectedShifts = Array.from(document.querySelectorAll('.shift-check:checked')).map(cb => parseInt(cb.value));
+        if (selectedDays.length === 0 || selectedShifts.length === 0) return alert("حدد الأيام والفترات");
+
+        const tbody = document.getElementById('tableBody');
+        for (let row of tbody.rows) {
+            if (selectedDays.includes(row.cells[1].textContent.trim())) {
+                selectedShifts.forEach(sIdx => {
+                    selectedWorkers.forEach(name => addNameToCell(row.cells[sIdx], name));
+                });
+            }
+        }
     }
 
-    function clearCell() { if (activeCell) activeCell.textContent = ''; }
+    function applyManual() {
+        if (!activeCell) return alert("اختر خلية");
+        const val = document.getElementById('manualInput').value.trim();
+        if (val) { addNameToCell(activeCell, val); document.getElementById('manualInput').value = ''; }
+    }
+
+    function clearSelectedCell() { if (activeCell) activeCell.textContent = ''; }
 
     function saveToHistory() {
         const rows = document.getElementById('tableBody').rows;
         let data = [];
         for (let r of rows) data.push([r.cells[2].textContent, r.cells[3].textContent, r.cells[4].textContent]);
-        let history = JSON.parse(localStorage.getItem('nabatchy_atlas_v3') || '[]');
-        history.unshift({ time: new Date().toLocaleString('ar-EG'), data, month: document.getElementById('monthSelect').value });
-        if (history.length > 5) history.pop();
-        localStorage.setItem('nabatchy_atlas_v3', JSON.stringify(history));
+        
+        const now = new Date();
+        const arabicDays = ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
+        const defaultName = `${arabicDays[now.getDay()]} ${now.toLocaleDateString('ar-EG')} - ${now.getHours()}:${now.getMinutes()}`;
+        
+        let customName = prompt("قم بتسمية النسخة (أو اتركها فارغة لاستخدام التوقيت):", defaultName);
+        if (customName === null) return; 
+        if (customName.trim() === "") customName = defaultName;
+
+        let history = JSON.parse(localStorage.getItem('nabatchy_v5_history') || '[]');
+        history.unshift({ name: customName, data: data });
+        if (history.length > 15) history.pop();
+        localStorage.setItem('nabatchy_v5_history', JSON.stringify(history));
         refreshHistoryUI();
-        alert("تم حفظ المرجع");
     }
 
     function refreshHistoryUI() {
         const list = document.getElementById('historyList');
-        const history = JSON.parse(localStorage.getItem('nabatchy_atlas_v3') || '[]');
-        list.innerHTML = history.length ? '' : 'لا يوجد نسخ';
-        history.forEach((item, idx) => {
-            const span = document.createElement('span'); span.className = 'history-tag';
-            span.textContent = item.time;
-            span.onclick = () => {
-                const tbody = document.getElementById('tableBody');
-                item.data.forEach((r, i) => { if(tbody.rows[i]) { tbody.rows[i].cells[2].textContent = r[0]; tbody.rows[i].cells[3].textContent = r[1]; tbody.rows[i].cells[4].textContent = r[2]; } });
-            };
-            list.appendChild(span);
+        const history = JSON.parse(localStorage.getItem('nabatchy_v5_history') || '[]');
+        list.innerHTML = history.length ? '' : 'لا توجد نسخ محفوظة';
+        
+        history.forEach((item, index) => {
+            let displayName = item.name || item.time;
+            const div = document.createElement('div');
+            div.className = 'history-tag';
+            
+            const nameSpan = document.createElement('span');
+            nameSpan.className = 'history-name';
+            nameSpan.textContent = displayName;
+            nameSpan.onclick = () => loadHistoryItem(item);
+
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'history-actions';
+            
+            const editBtn = document.createElement('span');
+            editBtn.textContent = '✏️';
+            editBtn.title = 'تعديل الاسم';
+            editBtn.onclick = (e) => { e.stopPropagation(); renameHistoryItem(index); };
+            
+            const delBtn = document.createElement('span');
+            delBtn.textContent = '❌';
+            delBtn.style.color = 'red';
+            delBtn.title = 'حذف النسخة';
+            delBtn.onclick = (e) => { e.stopPropagation(); deleteHistoryItem(index); };
+
+            actionsDiv.appendChild(editBtn);
+            actionsDiv.appendChild(delBtn);
+            div.appendChild(nameSpan);
+            div.appendChild(actionsDiv);
+            list.appendChild(div);
         });
+    }
+
+    function loadHistoryItem(item) {
+        if(confirm(`هل تريد استعادة النسخة: "${item.name || item.time}"؟ سيتم استبدال الجدول الحالي.`)) {
+            const tbody = document.getElementById('tableBody');
+            item.data.forEach((r, i) => { 
+                if(tbody.rows[i]) { 
+                    tbody.rows[i].cells[2].textContent = r[0]; 
+                    tbody.rows[i].cells[3].textContent = r[1]; 
+                    tbody.rows[i].cells[4].textContent = r[2]; 
+                } 
+            });
+        }
+    }
+
+    function renameHistoryItem(index) {
+        let history = JSON.parse(localStorage.getItem('nabatchy_v5_history') || '[]');
+        let currentName = history[index].name || history[index].time;
+        let newName = prompt("تعديل اسم النسخة:", currentName);
+        if (newName && newName.trim() !== "") {
+            history[index].name = newName.trim();
+            localStorage.setItem('nabatchy_v5_history', JSON.stringify(history));
+            refreshHistoryUI();
+        }
+    }
+
+    function deleteHistoryItem(index) {
+        if(confirm("هل أنت متأكد من حذف هذه النسخة؟")) {
+            let history = JSON.parse(localStorage.getItem('nabatchy_v5_history') || '[]');
+            history.splice(index, 1);
+            localStorage.setItem('nabatchy_v5_history', JSON.stringify(history));
+            refreshHistoryUI();
+        }
     }
 
     window.onload = init;
