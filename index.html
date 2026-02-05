@@ -111,8 +111,13 @@
         <label> السنة: </label>
         <input type="number" id="yearSelect" value="2026" style="width:65px;" onchange="generateTable()">
         
-        <button onclick="saveToHistory()" style="background:#28a745; color:white; border:none; padding:5px 15px; cursor:pointer; margin-right:10px; font-weight:bold;">💾 حفظ نسخة</button>
-        <button onclick="window.print()" style="background:#007bff; color:white; border:none; padding:5px 15px; cursor:pointer; margin-right:10px; font-weight:bold;">🖨️ طباعة الجدول</button>
+        <button onclick="saveToHistory()" style="background:#28a745; color:white; border:none; padding:5px 15px; cursor:pointer; margin-right:5px; font-weight:bold; border-radius:4px;">💾 حفظ بالتطبيق</button>
+        
+        <button onclick="downloadBackup()" style="background:#fd7e14; color:white; border:none; padding:5px 15px; cursor:pointer; margin-right:5px; font-weight:bold; border-radius:4px;">📥 تنزيل ملف</button>
+        <button onclick="document.getElementById('backupInput').click()" style="background:#6f42c1; color:white; border:none; padding:5px 15px; cursor:pointer; margin-right:5px; font-weight:bold; border-radius:4px;">📤 استعادة ملف</button>
+        <input type="file" id="backupInput" style="display:none" accept=".json" onchange="restoreBackup(this)">
+        
+        <button onclick="window.print()" style="background:#007bff; color:white; border:none; padding:5px 15px; cursor:pointer; margin-right:5px; font-weight:bold; border-radius:4px;">🖨️ طباعة</button>
     </div>
 
     <table id="mainTable">
@@ -184,7 +189,7 @@
         </div>
 
         <div class="history-section" style="margin-top:15px; border-top:1px dashed #999; padding-top:10px;">
-            <strong>📚 النسخ المحفوظة:</strong> <div id="historyList"></div>
+            <strong>📚 النسخ المحفوظة محلياً:</strong> <div id="historyList"></div>
         </div>
     </div>
 </div>
@@ -285,7 +290,6 @@
     }
 
     function handleCellClick(cell) {
-        // إذا كان هناك أسماء مختارة في الأسفل، قم بإضافتها
         if (selectedWorkers.length > 0) {
             selectedWorkers.forEach(name => addNameToCell(cell, name));
             activeCell = cell;
@@ -293,7 +297,6 @@
             return;
         }
 
-        // إذا لم يكن هناك أسماء مختارة، ابدأ عملية الحذف أو التعديل
         const content = cell.textContent.trim();
         if (content === "") return;
 
@@ -304,7 +307,6 @@
                 cell.textContent = "";
             }
         } else {
-            // إنشاء القائمة المرقمة كما في الصورة
             let msg = "الأسماء في الخلية:\n";
             names.forEach((n, i) => {
                 msg += `${i + 1}: ${n}\n`;
@@ -314,7 +316,6 @@
             let input = prompt(msg);
             if (input !== null) {
                 let index = parseInt(input) - 1;
-                // التأكد من أن الرقم المدخل صحيح وموجود في القائمة
                 if (!isNaN(index) && index >= 0 && index < names.length) {
                     names.splice(index, 1);
                     cell.textContent = names.join(' - ');
@@ -447,6 +448,77 @@
             localStorage.setItem('nabatchy_v5_history', JSON.stringify(history));
             refreshHistoryUI();
         }
+    }
+
+    // --- وظائف التنزيل والرفع الجديدة ---
+
+    function downloadBackup() {
+        const rows = document.getElementById('tableBody').rows;
+        let tableData = [];
+        for (let r of rows) {
+            tableData.push([r.cells[2].textContent, r.cells[3].textContent, r.cells[4].textContent]);
+        }
+
+        const backupObj = {
+            month: document.getElementById('monthSelect').value,
+            year: document.getElementById('yearSelect').value,
+            workers: workers, // حفظ قائمة العمال الحالية أيضاً
+            data: tableData,
+            savedAt: new Date().toISOString()
+        };
+
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupObj));
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", "nabatchy_backup_" + new Date().toLocaleDateString('ar-EG').replace(/\//g, '-') + ".json");
+        document.body.appendChild(downloadAnchorNode);
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+    }
+
+    function restoreBackup(input) {
+        const file = input.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const backup = JSON.parse(e.target.result);
+
+                // استعادة التاريخ (الشهر والسنة)
+                if(backup.month) document.getElementById('monthSelect').value = backup.month;
+                if(backup.year) document.getElementById('yearSelect').value = backup.year;
+
+                // استعادة قائمة الأسماء وتحديثها
+                if(backup.workers && Array.isArray(backup.workers)) {
+                    workers = backup.workers;
+                    localStorage.setItem('nabatchy_worker_list', JSON.stringify(workers));
+                    refreshPalette();
+                }
+
+                // إعادة بناء الجدول ليتناسب مع الشهر المسترجع
+                generateTable();
+
+                // ملء البيانات في الجدول
+                const tbody = document.getElementById('tableBody');
+                if(backup.data && Array.isArray(backup.data)) {
+                    backup.data.forEach((rowData, index) => {
+                        if(tbody.rows[index]) {
+                            tbody.rows[index].cells[2].textContent = rowData[0] || '';
+                            tbody.rows[index].cells[3].textContent = rowData[1] || '';
+                            tbody.rows[index].cells[4].textContent = rowData[2] || '';
+                        }
+                    });
+                }
+                
+                alert("تم استعادة النسخة بنجاح!");
+            } catch (err) {
+                alert("حدث خطأ! الملف غير صالح أو تالف.");
+                console.error(err);
+            }
+        };
+        reader.readAsText(file);
+        input.value = ''; 
     }
 
     window.onload = init;
