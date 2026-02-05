@@ -84,22 +84,20 @@
         .day-chip { background: #f8f9fa; border: 1px solid #ddd; padding: 3px 8px; border-radius: 4px; cursor: pointer; font-size: 12px; }
         .day-chip input { margin-left: 5px; cursor: pointer; }
 
-        /* ستايل جدول الإحصائيات الجديد */
         .stats-table { width: 100%; margin-top: 10px; border: 2px solid #333; }
         .stats-table th { background: #007bff; color: white; padding: 8px; }
         .stats-table td { font-weight: bold; font-size: 13px; }
         .stats-row:nth-child(even) { background-color: #f2f2f2; }
 
         @media print {
-            .controls-panel, .setup-bar, .history-section, .no-print { display: none !important; }
+            /* تمت إضافة .stats-section هنا لإخفائها في الطباعة */
+            .controls-panel, .setup-bar, .history-section, .stats-section, .no-print { display: none !important; }
             @page { size: A4 landscape; margin: 5mm; }
             body { padding: 0; margin: 0; background: white; }
             .container { box-shadow: none; width: 100%; padding: 0; }
             html { zoom: 82%; } 
             table { width: 100% !important; border: 1px solid #000 !important; }
             th, td { border: 1px solid #000 !important; }
-            /* إخفاء زر توليد الإحصائيات عند الطباعة لكن إظهار جدول الإحصائيات نفسه إذا كان موجوداً */
-            #generateStatsBtn { display: none; }
         }
     </style>
 </head>
@@ -148,7 +146,7 @@
         <div class="sig-block"><div> مدير المستشفى</div><input type="text" value="د/ محمد صلاح قاسم"></div>
     </div>
 
-    <div style="margin-top: 30px; border-top: 2px dashed #ccc; padding-top: 15px;">
+    <div class="stats-section" style="margin-top: 30px; border-top: 2px dashed #ccc; padding-top: 15px;">
         <button id="generateStatsBtn" onclick="calculateStats()" style="width: 100%; padding: 10px; background: #343a40; color: white; border: none; font-size: 16px; font-weight: bold; cursor: pointer; border-radius: 5px;">📊 عرض إحصائيات الشيفتات والساعات</button>
         <div id="statsContainer" style="display:none; margin-top: 15px;">
             <h3 style="text-align:center; margin-bottom:5px; text-decoration: underline;">تقرير الشيفتات والساعات الشهرية</h3>
@@ -537,13 +535,9 @@
         input.value = ''; 
     }
 
-    // --- وظائف الإحصائيات الجديدة ---
     function calculateStats() {
         let stats = {};
         
-        // دالة مساعدة لحساب الخلية
-        // shiftCount: 1 للصباحي/مسائي، 2 للسهر
-        // hourCount: 6 للصباحي/مسائي، 12 للسهر
         const processCell = (cellContent, shiftCount, hourCount, type) => {
             if (!cellContent.trim()) return;
             const names = cellContent.split(' - ').map(n => n.trim()).filter(n => n);
@@ -563,18 +557,14 @@
 
         const rows = document.getElementById('tableBody').rows;
         for (let row of rows) {
-            // الخلية 2: صباحي (8-2)
             processCell(row.cells[2].textContent, 1, 6, 'normal');
-            // الخلية 3: مسائي (2-8)
             processCell(row.cells[3].textContent, 1, 6, 'normal');
-            // الخلية 4: سهر (8-8)
             processCell(row.cells[4].textContent, 2, 12, 'night');
         }
 
         const statsBody = document.getElementById('statsBody');
         statsBody.innerHTML = '';
         
-        // تحويل الكائن لمصفوفة للترتيب
         const sortedNames = Object.keys(stats).sort();
 
         if (sortedNames.length === 0) {
@@ -596,7 +586,6 @@
         }
 
         document.getElementById('statsContainer').style.display = 'block';
-        // النزول للجدول تلقائياً
         document.getElementById('statsContainer').scrollIntoView({ behavior: 'smooth' });
     }
 
